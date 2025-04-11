@@ -26,8 +26,8 @@ commits_response=$(curl -s -H "${AUTH_HEADER}" -H "${API_HEADER}" $COMMITS_URL)
 # This is limited to 250 entries, but it should be okay
 N_COMMITS=$(echo $commits_response | jq -r length)
 
-# /softfix ``` ... ```
-COMMIT_MSG=$(jq -rRs 'match("(?<!\\S)/softfix\\n```\\n(.*?)\\n```(?:\\n|\\z)"; "m").captures[0].string' <<<"$COMMENT_BODY")
+# /squash ``` ... ```
+COMMIT_MSG=$(jq -rRs 'match("(?<!\\S)/squash\\n```\\n(.*?)\\n```(?:\\n|\\z)"; "m").captures[0].string' <<<"$COMMENT_BODY")
 
 if [[ -z "$COMMIT_MSG" ]] && [[ "$N_COMMITS" -eq 1 ]]; then
 	echo "Nothing to do here, aborting..."
@@ -67,7 +67,7 @@ git fetch fork $HEAD_BRANCH
 
 git checkout -b $HEAD_BRANCH fork/$HEAD_BRANCH
 
-if [[ -z "$COMMIT_MSG" ]] && jq -eRs 'test("(?<!\\S)/softfix:squash\\b")' <<<"$COMMENT_BODY" >/dev/null; then
+if [[ -z "$COMMIT_MSG" ]] && jq -eRs 'test("(?<!\\S)/squash\\b")' <<<"$COMMENT_BODY" >/dev/null; then
 	# /softfix:squash: GitHub's Squash and merge style
 	COMMIT_MSG=$(git log --reverse --pretty=format:"* %B" "HEAD~$N_COMMITS..HEAD" | tail -c +3)
 fi
